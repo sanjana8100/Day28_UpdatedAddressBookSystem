@@ -1,7 +1,11 @@
 package com.bridgelabz.AddressBookSystem;
 
-import java.io.File;
-import java.io.IOException;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.CSVWriter;
+import com.opencsv.exceptions.CsvException;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -177,8 +181,8 @@ public class AddressBookMain {
         String path = "C:\\Users\\INS 5570\\IdeaProjects\\UpdatedAddressBookUsingCSVandJSON\\src\\main\\java\\com\\bridgelabz\\AddressBookSystem\\AddressBooks.txt";
         StringBuffer addressBookBuffer = new StringBuffer();
         addressBookMap.values().stream().forEach(contact -> {
-            String personDataString = contact.toString().concat("\n");
-            addressBookBuffer.append(personDataString);
+            String contactDataString = contact.toString().concat("\n");
+            addressBookBuffer.append(contactDataString);
         });
 
         try {
@@ -193,10 +197,72 @@ public class AddressBookMain {
         String path = "C:\\Users\\INS 5570\\IdeaProjects\\UpdatedAddressBookUsingCSVandJSON\\src\\main\\java\\com\\bridgelabz\\AddressBookSystem\\AddressBooks.txt";
         System.out.println("Reading from : " + path + "\n");
         try {
-            Files.lines(new File(path).toPath()).forEach(employeeDetails -> System.out.println(employeeDetails));
+            Files.lines(new File(path).toPath()).forEach(contactDetails -> System.out.println(contactDetails));
         }
         catch(IOException e){
             System.out.println("Catch block");
+        }
+    }
+
+    public static void writeToCSVFile() {
+        FileWriter fileWriter = null;
+        String csvPath = "C:\\Users\\INS 5570\\Desktop\\AddressBooks.csv";
+
+        try {
+            fileWriter = new FileWriter(csvPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        CSVWriter writer = new CSVWriter(fileWriter);
+        List<String[]> csvLines = new ArrayList<>();
+
+        addressBookMap.keySet().stream().forEach(bookName -> addressBookMap.get(bookName).getContacts()
+                .stream().forEach(contact -> csvLines.add(new String[]{contact.toString()})));
+
+
+        writer.writeAll(csvLines);
+
+        try {
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void readFromCSVFile(){
+        String csvPath = "C:\\Users\\INS 5570\\Desktop\\AddressBooks.csv";
+        FileReader fileReader = null;
+        try {
+            fileReader = new FileReader(csvPath);
+        } catch (FileNotFoundException e) {
+
+            e.printStackTrace();
+        }
+
+        CSVReader reader = new CSVReaderBuilder(fileReader).build();
+
+        List<String[]> linesOfData = null;
+
+        try {
+            linesOfData = reader.readAll();
+        } catch (IOException | CsvException e) {
+
+            e.printStackTrace();
+        }
+
+        System.out.println("\nReading data from csv file:");
+        linesOfData.stream().forEach(lines -> {
+            for (String value : lines)
+                System.out.print(value + "\t");
+            System.out.println();
+        });
+
+        try {
+            reader.close();
+        } catch (IOException e) {
+
+            e.printStackTrace();
         }
     }
 
@@ -216,18 +282,21 @@ public class AddressBookMain {
             System.out.println("=> To Display Address Books Of Contacts: PRESS 7");
             System.out.println("=> To Display Contacts in an Address Book in Sorted Order based on a specific detail: PRESS 8");
             System.out.println("=> To Read and Display all the Contacts from the Address Book File: PRESS 9");
-            System.out.println("=> To EXIT: PRESS 10");
+            System.out.println("=> To Read and Display all the Contacts from the Address Book CSV File: PRESS 10");
+            System.out.println("=> To EXIT: PRESS 11");
             int choice = in.nextInt();
 
             switch (choice) {
                 case 1:
                     addAddressBook();
                     writeToFile();
+                    writeToCSVFile();
                     System.out.println();
                     break;
                 case 2:
                     addContacts();
                     writeToFile();
+                    writeToCSVFile();
                     break;
                 case 3:
                     editContact();
@@ -249,6 +318,9 @@ public class AddressBookMain {
                     break;
                 case 9:
                     readFromFile();
+                    break;
+                case 10:
+                    readFromCSVFile();
                     break;
                 default:
                     status=false;
